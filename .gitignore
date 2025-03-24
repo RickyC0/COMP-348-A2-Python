@@ -124,3 +124,5 @@ dmypy.json
 .pyre/
 
 COMP 348 A2
+
+*.pdf
