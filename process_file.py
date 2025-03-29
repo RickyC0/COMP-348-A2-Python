@@ -111,20 +111,49 @@ class DiagramObject:
 
 
 # Function that executes the appropriate logic based on what the user selected
-def process_user_choice(choice):
+def process_user_choice(choice,diagrams_dict=None):
+    if diagrams_dict is None:
+        diagrams_dict = {}
     if choice == 1:
-            print("\nYou chose: List Current Files")
-            list_current_files()
+            choice_one()
+
     elif choice == 2:
-        print("\nYou chose: List Diagrams")
-        # TODO
+        choice_two(diagrams_dict=diagrams_dict)
+        
     elif choice == 3:
-        print("\nYou chose: Load File")
-        # TODO
+        choice_three(diagrams_dict=diagrams_dict)
+
     elif choice == 4:
-        print("\nYou chose: Display Diagram Info")
-        # TODO
+        choice_four()
+        
     elif choice == 5:
+        choice_five()
+
+    elif choice == 6:
+        choice_six()
+        
+    elif choice == 7:
+        choice_seven()
+
+    else:
+        return
+        
+
+def choice_one():
+    print("\nYou chose: List Current Files")
+    xml_files=list_current_files()
+
+    if len(xml_files)==0:
+        print("No XML files found in the current directory.")
+    else:
+        for xml_file in xml_files:
+            print(xml_file)
+        print()
+
+def choice_two(diagrams_dict):
+    print("\nYou chose: List Diagrams")
+
+    list_diagrams(diagrams_dict=diagrams_dict)
         # Enter the sub-menu for Search
         while True:
             search_sub_menu_five()
@@ -202,10 +231,10 @@ def exit():
 
 
 if __name__=="__main__":
-    choice=prompt_user()
+    choice=prompt_user_menu()
     
     process_user_choice(choice)
     while choice!=7:
-        choice=prompt_user()
+        choice=prompt_user_menu()
         process_user_choice(choice)
     exit()
