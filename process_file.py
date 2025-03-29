@@ -1,6 +1,39 @@
 from ui import *
 import os
 import sys
+import xml.etree.ElementTree as ET
+
+
+class FolderException(Exception):
+    def __init__(self, message="You have not specified a folder that could contain XML files to check."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class FileException(FolderException):
+    def __init__(self, message="File not Found Error."):
+        self.message = message
+        super().__init__(self.message)
+
+class FileAlreadyExists(FileException):
+    def __init__(self, filename, message=None):
+        if message is None:
+            message = f"The file {filename} is already loaded in memory."
+        self.message = message
+        super().__init__(self.message)
+
+class DiagramException(Exception):
+    def __init__(self, message="An error occurred while processing the diagram."):
+        self.message = message
+        super().__init__(self.message)
+
+class DiagramObjectException(Exception):
+    def __init__(self, message="An error occurred while processing the diagram object."):
+        self.message = message
+        super().__init__(self.message)
+
+
+
 class Diagram:
     def __init__(self, path: str, folder: str, filename: str, source: str, size: tuple, segmented: bool, objects: list = None):
         """
