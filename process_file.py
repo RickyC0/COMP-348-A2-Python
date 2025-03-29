@@ -35,6 +35,8 @@ class DiagramObjectException(Exception):
 
 
 class Diagram:
+    objects=[]
+
     def __init__(self, path: str, folder: str, filename: str, source: str, size: tuple, segmented: bool, objects: list = None):
         """
         Represents an XML file diagram.
@@ -77,8 +79,17 @@ class Diagram:
         """Adds a DiagramObject to the objects list."""
         self.objects.append(diagram_object)
 
-
 class DiagramObject:
+    OBJ_NAME_IDX = 0
+    POSE_IDX = 1
+    TRUNCATED_IDX = 2
+    DIFFICULT_IDX = 3
+    BNDBOX_IDX = 4
+    # Define the attributes of the object   
+
+    BNDBOX=(0, 0, 0, 0) # Placeholder for bounding box coordinates (xmin, ymin, xmax, ymax)
+
+
     def __init__(self, name: str, pose: str, truncated: bool, difficult: bool, bndbox: tuple):
         """
         Represents an object within a diagram.
@@ -89,6 +100,7 @@ class DiagramObject:
         :param difficult: Boolean indicating if the object is difficult.
         :param bndbox: Tuple representing bounding box (e.g., (xmin, ymin, xmax, ymax)).
         """
+
         self.name = name
         self.pose = pose
         self.truncated = truncated
@@ -154,50 +166,163 @@ def choice_two(diagrams_dict):
     print("\nYou chose: List Diagrams")
 
     list_diagrams(diagrams_dict=diagrams_dict)
-        # Enter the sub-menu for Search
-        while True:
-            search_sub_menu_five()
-            sub_choice = input("\nSelect an option (1, 2 or 0): ").strip()
 
-            if sub_choice == "1":
-                print("\nYou chose: 5.1. Find by type")
-                # TODO
-            elif sub_choice == "2":
-                print("\nYou chose: 5.2. Find by dimension")
-                # TODO
-            elif sub_choice == "0":
-                print("Returning to main menu...")
-                break
+
+    
+
+def choice_three(diagrams_dict):
+    
+    xml_files=list_current_files()
+
+    if(len(xml_files)!=0):
+        print("\nYou chose: Load File")
+        choice_one()
+
+        file_name=prompt_user_file_name()
+
+        try:
+            if is_file_loaded(file_name, diagrams_dict):
+                raise FileAlreadyExists(file_name)
+            
+        except FileAlreadyExists as e:
+            print(e)
+        
+        else:
+            print(f"Loading file: {file_name}")
+            if file_name in xml_files:
+                try:
+                    load_file(filename=file_name, diagrams_dict=diagrams_dict)
+                    
+                except FileNotFoundError:
+                    raise FileException("File not found.")
+
             else:
-                print("Invalid search option. Please try again.")
-    elif choice == 6:
-        print("\nYou chose: Statistics")
-        # TODO
-    elif choice == 7:
-        exit()
+                print("The file you entered does not exist in the current directory.")
 
     else:
-        return
-        
+        print("No XML files found in the current directory.")
 
-def list_current_files():
+def choice_four():
+    print("\nYou chose: Display Diagram Info")
+    
+
+def choice_five():
+    # Enter the sub-menu for Search
+    while True:
+        search_sub_menu_five()
+        sub_choice = input("\nSelect an option (1, 2 or 0): ").strip()
+
+        if sub_choice == "1":
+            print("\nYou chose: 5.1. Find by type")
+            # TODO
+        elif sub_choice == "2":
+            print("\nYou chose: 5.2. Find by dimension")
+            # TODO
+        elif sub_choice == "0":
+            print("Returning to main menu...")
+            break
+        else:
+            print("Invalid search option. Please try again.")
+    
+
+def choice_six():
+    print("\nYou chose: Statistics")
+    pass
+
+def choice_seven():
+    if prompt_user_exit():
+        exit()
+
+def list_current_files()-> list[str]:
     all_files=os.listdir()
     xml_files=[]
 
     for each_file in all_files:
-        if(each_file.__contains__(".xml")):
+        if each_file.endswith(".xml"):
             xml_files.append(each_file)
 
-    for xml_file in xml_files:
-        print(xml_file)
+    return xml_files
     
 
+def list_diagrams(diagrams_dict):
+    if len(diagrams_dict) == 0:
+        print("No diagrams loaded.")
+    else:
+        for filename, diagram in diagrams_dict.items():
+            print(f"Filename: {filename}")
+            print(diagram)
+            print("-" * 20)  # Separator between diagrams
 
-def list_diagrams():
-    return None
+def load_file(filename, diagrams_dict):
+    try:
+        with open(filename, 'r') as file:
+            xml_data = file.read()
 
-def load_file():
-    return None
+        # Validate XML structure
+        try:
+            root = ET.fromstring(xml_data)
+        except ET.ParseError as parse_error:
+            print(f"Error: The file '{filename}' contains invalid XML.\nDetails: {parse_error}")
+            return
+
+        folder = root.findtext("folder", default="")
+        path = root.findtext("path", default="")
+        file_name = root.findtext("filename", default=filename)
+        source = root.findtext("source/database", default="Unknown")
+
+        size_elem = root.find("size")
+        width = int(size_elem.findtext("width", default="0")) if size_elem is not None else 0
+        height = int(size_elem.findtext("height", default="0")) if size_elem is not None else 0
+        depth = int(size_elem.findtext("depth", default="0")) if size_elem is not None else 0
+        size = (width, height, depth)
+
+        segmented = root.findtext("segmented", default="0") == "1"
+
+        
+        objects = []
+
+        for obj_elem in root.findall('object'):
+            name = obj_elem.findtext('name', default='')
+            pose = obj_elem.findtext('pose', default='Unspecified')
+            truncated = int(obj_elem.findtext('truncated', default='0'))
+            difficult = int(obj_elem.findtext('difficult', default='0'))
+
+            bndbox = obj_elem.find('bndbox')
+            if bndbox is not None:
+                xmin = int(bndbox.findtext('xmin', default='0'))
+                ymin = int(bndbox.findtext('ymin', default='0'))
+                xmax = int(bndbox.findtext('xmax', default='0'))
+                ymax = int(bndbox.findtext('ymax', default='0'))
+                bbox = [xmin, ymin, xmax, ymax]
+            else:
+                bbox = [0, 0, 0, 0]
+
+            
+            obj = DiagramObject(name, pose, truncated, difficult, bbox)
+            objects.append(obj)
+
+        
+        diagram = Diagram(
+            path=path,
+            folder=folder,
+            filename=file_name,
+            source=source,
+            size=size,
+            segmented=segmented,
+            objects=objects
+        )
+
+        
+        diagrams_dict[filename] = diagram
+        print("File loaded successfully!")
+
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+        FileException()
+
+def is_file_loaded(filename, diagrams_dict):
+    """Check if a file is already loaded in memory."""
+    return filename in diagrams_dict
 
 def display_diagram_info():
     return None
