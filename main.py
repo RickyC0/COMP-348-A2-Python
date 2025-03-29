@@ -25,21 +25,24 @@ def install_dependencies():
         sys.exit(1)
 
 
-def main():
-    user_choice = prompt_user()  
-
-    if(validate_argv(sys.argv[1])):
-        os.chdir(sys.argv[1])
-    else:
-        no_path_error()
+def main(): 
+    try:
+        if len(sys.argv) < 2:
+            raise FolderException()
+    except FolderException as e:
+        print(e)
         exit()
 
     install_dependencies()
 
-    while user_choice!=7:
-        user_choice=prompt_user()
-        process_user_choice(user_choice)
-    exit()  
+    loaded_objects={}
+
+    os.chdir(sys.argv[1])
+
+    while True:
+        user_choice=prompt_user_menu()
+        process_user_choice(user_choice,diagrams_dict=loaded_objects)
+      
 
 if __name__ == '__main__':
     main()
