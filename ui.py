@@ -92,6 +92,14 @@ def prompt_user_exit():
         else:
             print("Invalid input. Please enter 'y' or 'n'.")
 
+def prompt_user_object_type():
+    while True:
+        user_input = input("Enter the type of object you want to search for: ").strip()
+        if user_input:
+            return user_input
+        else:
+            print("Invalid input. Please enter a valid object type.")
+
 def return_current_files()-> list[str]:
     all_files=os.listdir()
     xml_files=[]
@@ -109,7 +117,6 @@ def list_diagrams(diagrams_dict):
         for filename, diagram in diagrams_dict.items():
             print(f"Filename: {filename}")
             print("-" * 20)  # Separator between diagrams
-
 
 def display_diagram_info(diagrams_dict, file_name):
     """Display formatted information about a specific diagram."""

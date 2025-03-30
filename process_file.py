@@ -196,19 +196,20 @@ def choice_three(diagrams_dict):
             print(e)
         
         else:
-            print(f"Loading file: {file_name}")
-            if file_name in xml_files:
-                try:
-                    load_file(filename=file_name, diagrams_dict=diagrams_dict)
-                    
-                except FileNotFoundError:
-                    raise FileException("File not found.")
+            try:
+                print(f"Loading file: {file_name}")
+                if file_name in xml_files:
+                    try:
+                        load_file(filename=file_name, diagrams_dict=diagrams_dict)
+                        
+                    except FileNotFoundError:
+                        raise FileException("File not found.")
 
-            else:
-                raise FileException(f"File '{file_name}' not found in the current directory.")
+                else:
+                    raise FileException(f"File '{file_name}' not found in the current directory.")
             
-            exception=FileException("File not found in the current directory.")
-            print(exception)
+            except FileException as e:
+                print(e)
 
     else:
         exception=FolderException("No XML files found in the current directory.")
@@ -247,7 +248,8 @@ def choice_five(diagrams_dict=None):
 
         if sub_choice == "1":
             print("\nYou chose: 5.1. Find by type")
-            # TODO
+            choice_five_one(diagrams_dict=diagrams_dict)
+
         elif sub_choice == "2":
             print("\nYou chose: 5.2. Find by dimension")
             # TODO
@@ -257,6 +259,15 @@ def choice_five(diagrams_dict=None):
         else:
             print("Invalid search option. Please try again.")
     
+def choice_five_one(diagrams_dict=None):
+    found_diagrams = search_by_object_type(diagrams_dict=diagrams_dict)
+
+    if len(found_diagrams) == 0:
+        print("No objects found with the specified type.")
+    else:
+        print("Found objects:")
+        for diagram in found_diagrams:
+            print(diagram.filename)
 
 def choice_six(diagrams_dict=None):
     
@@ -337,15 +348,36 @@ def load_file(filename, diagrams_dict=None):
     except Exception as e:
         print(f"An unexpected error occurred while loading the file '{filename}'.\nDetails: {e}")
 
-def is_file_loaded(filename, diagrams_dict):
+def is_file_loaded(filename, diagrams_dict=None):
     """Check if a file is already loaded in memory."""
     return filename in diagrams_dict
 
+# Function that searches the loaded diagrams for a specific object type.
+# NB: I assumed that the object type is the name of the object in the XML file.
+def search_by_object_type(diagrams_dict=None)-> list[Diagram]:
+    object_type = prompt_user_object_type()
 
-def search_by_type():
-    return None
+    if diagrams_dict is None:
+        diagrams_dict = {}
 
-def search_by_dimension():
+    try:
+        if len(diagrams_dict) == 0:
+            raise DiagramException("No diagrams loaded.")
+    except DiagramException as e:
+        print(e)
+        return  
+    
+    found_objects = []
+
+    for diagram in diagrams_dict.values():
+        for obj in diagram.objects:
+            if obj.name == object_type:
+                found_objects.append(diagram)
+                break
+
+    return found_objects
+
+def search_by_object_dimension():
     return None
 
 def show_statistics():
