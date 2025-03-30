@@ -1,50 +1,59 @@
-from process_file import *
-from ui import *
-import sys
 import os
+import sys
 import subprocess
 
-try:
-    import readline
-except ImportError:
-    import pyreadline3 as readline
+from process_file import *
+from ui import *
+
 
 def install_dependencies():
+    """Install dependencies listed in dependencies.txt, only once."""
     if os.path.exists(".installed"):
-        return  # Dependencies already installed
+        return
 
-    # Dependency installation logic
-    print("Installing dependencies...")
+    print("[INFO] Installing project dependencies...")
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "dependencies.txt"])
-        print("All dependencies installed successfully!\n")
-        with open(".installed", "w") as f:
-            f.write("installed")
+        with open(".installed", "w") as flag:
+            flag.write("installed")
+        print("[✓] All dependencies installed successfully.\n")
     except subprocess.CalledProcessError:
-        print("Failed to install dependencies.")
+        print("[ERROR] Failed to install dependencies.")
         sys.exit(1)
 
 
-def main(): 
+def validate_and_change_directory():
+    """Validate the XML folder argument and change to that directory."""
+    if len(sys.argv) < 2:
+        raise FolderException("Usage: python main.py <folder_path>")
+    
+    folder_path = sys.argv[1]
+    if not os.path.isdir(folder_path):
+        raise FolderException(f"[ERROR] The path '{folder_path}' is not a valid directory.")
+
+    os.chdir(folder_path)
+    print(f"[✓] Working in directory: {os.getcwd()}")
+
+
+def main():
     try:
-        if len(sys.argv) < 2:
-            raise FolderException()
+        install_dependencies()
+
+        validate_and_change_directory()
+
+        loaded_objects = {}
+
+        while True:
+            user_choice = prompt_user_menu()
+            process_user_choice(user_choice, diagrams_dict=loaded_objects)
+
     except FolderException as e:
         print(e)
-        exit()
+    except KeyboardInterrupt:
+        print("\n[INFO] Program exited by user.")
+    except Exception as e:
+        print(f"[ERROR] Unexpected error: {e}")
 
-    install_dependencies()
-
-    loaded_objects={}
-
-    os.chdir(sys.argv[1])
-
-    while True:
-        user_choice=prompt_user_menu()
-        process_user_choice(user_choice,diagrams_dict=loaded_objects)
-      
 
 if __name__ == '__main__':
     main()
-
-    

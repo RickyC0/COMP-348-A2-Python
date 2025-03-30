@@ -1,13 +1,13 @@
 
-import subprocess
-
-try:
-    import readline
-except ImportError:
-    import pyreadline3 as readline
-
 import os
 import sys
+
+try:
+    import readline  # This will internally use pyreadline3 (for Windows) if installed 
+except ImportError:
+    print("[ERROR] readline is not available.")
+    sys.exit(1)
+
 
 
 # Custom exception for invalid user input
@@ -70,16 +70,13 @@ def complete_xml_factory(diagrams_dict=None):
 # If diagrams_dict is not None, it will be used to check if the file is already loaded
 # If diagrams_dict is None, it will just return the filename without checking from the directory
 def prompt_user_file_name(diagrams_dict=None) -> str:
-    old_completer = readline.get_completer()
-
-    # Use the factory to pass diagrams_dict
     readline.set_completer(complete_xml_factory(diagrams_dict))
     readline.parse_and_bind("tab: complete")
 
-    try:
-        user_input = input("\nEnter the name of the XML file you want to load: ").strip()
-    finally:
-        readline.set_completer(old_completer)
+    user_input = input("\nEnter the name of the XML file you want to load: ").strip()
+
+    # Optionally disable completer afterward by setting it to None
+    readline.set_completer(None)
 
     return user_input
 

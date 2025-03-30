@@ -224,7 +224,7 @@ def choice_four(diagrams_dict=None):
         print(e)
          
 
-def choice_five():
+def choice_five(diagrams_dict=None):
     # Enter the sub-menu for Search
     while True:
         search_sub_menu_five()
@@ -243,7 +243,7 @@ def choice_five():
             print("Invalid search option. Please try again.")
     
 
-def choice_six():
+def choice_six(diagrams_dict=None):
     print("\nYou chose: Statistics")
     pass
 
