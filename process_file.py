@@ -127,22 +127,26 @@ def process_user_choice(choice,diagrams_dict=None):
     if diagrams_dict is None:
         diagrams_dict = {}
     if choice == 1:
-            choice_one()
+        print("\nYou chose: List Current Files")
+        choice_one()
 
     elif choice == 2:
+        print("\nYou chose: List Diagrams")
         choice_two(diagrams_dict=diagrams_dict)
         
     elif choice == 3:
+        print("\nYou chose: Load File")
         choice_three(diagrams_dict=diagrams_dict)
 
     elif choice == 4:
-        choice_four()
+        print("\nYou chose: Display Diagram Info")
+        choice_four(diagrams_dict=diagrams_dict)
         
     elif choice == 5:
-        choice_five()
+        choice_five(diagrams_dict=diagrams_dict)
 
     elif choice == 6:
-        choice_six()
+        choice_six(diagrams_dict=diagrams_dict)
         
     elif choice == 7:
         choice_seven()
@@ -152,8 +156,7 @@ def process_user_choice(choice,diagrams_dict=None):
         
 
 def choice_one():
-    print("\nYou chose: List Current Files")
-    xml_files=list_current_files()
+    xml_files=return_current_files()
 
     if len(xml_files)==0:
         print("No XML files found in the current directory.")
@@ -163,7 +166,6 @@ def choice_one():
         print()
 
 def choice_two(diagrams_dict):
-    print("\nYou chose: List Diagrams")
 
     list_diagrams(diagrams_dict=diagrams_dict)
 
@@ -172,10 +174,9 @@ def choice_two(diagrams_dict):
 
 def choice_three(diagrams_dict):
     
-    xml_files=list_current_files()
+    xml_files=return_current_files()
 
     if(len(xml_files)!=0):
-        print("\nYou chose: Load File")
         choice_one()
 
         file_name=prompt_user_file_name()
@@ -202,9 +203,26 @@ def choice_three(diagrams_dict):
     else:
         print("No XML files found in the current directory.")
 
-def choice_four():
-    print("\nYou chose: Display Diagram Info")
+def choice_four(diagrams_dict=None):
     
+
+    if diagrams_dict is None:
+        diagrams_dict = {}
+
+    if len(diagrams_dict) == 0:
+        print("No diagrams loaded.")
+        return
+    
+
+    choice_two(diagrams_dict=diagrams_dict)
+    file_name=prompt_user_file_name(diagrams_dict=diagrams_dict)
+
+    try:
+        display_diagram_info(diagrams_dict=diagrams_dict, file_name=file_name)
+
+    except FileNotFoundError as e:
+        print(e)
+         
 
 def choice_five():
     # Enter the sub-menu for Search
@@ -231,27 +249,8 @@ def choice_six():
 
 def choice_seven():
     if prompt_user_exit():
-        exit()
+        exit()   
 
-def list_current_files()-> list[str]:
-    all_files=os.listdir()
-    xml_files=[]
-
-    for each_file in all_files:
-        if each_file.endswith(".xml"):
-            xml_files.append(each_file)
-
-    return xml_files
-    
-
-def list_diagrams(diagrams_dict):
-    if len(diagrams_dict) == 0:
-        print("No diagrams loaded.")
-    else:
-        for filename, diagram in diagrams_dict.items():
-            print(f"Filename: {filename}")
-            print(diagram)
-            print("-" * 20)  # Separator between diagrams
 
 def load_file(filename, diagrams_dict):
     try:
@@ -324,8 +323,6 @@ def is_file_loaded(filename, diagrams_dict):
     """Check if a file is already loaded in memory."""
     return filename in diagrams_dict
 
-def display_diagram_info():
-    return None
 
 def search_by_type():
     return None

@@ -79,7 +79,6 @@ def prompt_user_file_name(diagrams_dict=None) -> str:
     try:
         user_input = input("\nEnter the name of the XML file you want to load: ").strip()
     finally:
-        # Restore the previous completer to avoid affecting other inputs
         readline.set_completer(old_completer)
 
     return user_input
@@ -96,6 +95,56 @@ def prompt_user_exit():
         else:
             print("Invalid input. Please enter 'y' or 'n'.")
 
+def return_current_files()-> list[str]:
+    all_files=os.listdir()
+    xml_files=[]
+
+    for each_file in all_files:
+        if each_file.endswith(".xml"):
+            xml_files.append(each_file)
+
+    return xml_files
+
+def list_diagrams(diagrams_dict):
+    if len(diagrams_dict) == 0:
+        print("No diagrams loaded.")
+    else:
+        for filename, diagram in diagrams_dict.items():
+            print(f"Filename: {filename}")
+            print("-" * 20)  # Separator between diagrams
+
+
+def display_diagram_info(diagrams_dict, file_name):
+    """Display formatted information about a specific diagram."""
+    diagram = diagrams_dict.get(file_name)
+    
+    if diagram is None:
+        print(f"\n[!] File '{file_name}' is not loaded.\n")
+        return
+
+    print("\n" + "=" * 50)
+    print(f"📄 Diagram Info for: {file_name}")
+    print("=" * 50)
+
+    print(f"📁 Folder:       {diagram.folder}")
+    print(f"📂 Path:         {diagram.path}")
+    print(f"📝 Filename:     {diagram.filename}")
+    print(f"🗃️ Source:       {diagram.source}")
+    print(f"📐 Size (W×H×D): {diagram.size}")
+    print(f"🔘 Segmented:    {diagram.segmented}")
+    print("-" * 50)
+
+    print(f"🧱 Contains {len(diagram.objects)} object(s):")
+    for idx, obj in enumerate(diagram.objects, 1):
+        print(f"\n   ▶ Object #{idx}")
+        print("   " + "-" * 30)
+        for attr_name, attr_value in obj.__dict__.items():
+            if attr_name == "bndbox":
+                attr_value = f"({attr_value[0]}, {attr_value[1]}, {attr_value[2]}, {attr_value[3]})"
+                
+            print(f"   • {attr_name.capitalize():<12}: {attr_value}")
+
+    print("\n" + "=" * 50 + "\n")
 
 if __name__ == "__main__":
     # Prompt the user for a choice and display it
