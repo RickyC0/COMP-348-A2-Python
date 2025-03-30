@@ -57,17 +57,23 @@ def prompt_user_menu() -> int:
 
         return choice
 
-def complete_xml(text, state):
-    """Autocomplete .xml filenames based on user input."""
-    files = [f for f in os.listdir() if f.endswith(".xml") and f.startswith(text)]
-    return files[state] if state < len(files) else None
+def complete_xml_factory(diagrams_dict=None):
+    def completer(text, state):
+        if diagrams_dict is not None:
+            files = [f for f in diagrams_dict.keys() if f.startswith(text)]
+        else:
+            files = [f for f in os.listdir() if f.endswith(".xml") and f.startswith(text)]
+        return files[state] if state < len(files) else None
+    return completer
 
-def prompt_user_file_name() -> str:
-    # Backup the previous completer (if any)
+# Prompt the user for a filename with autocompletion
+# If diagrams_dict is not None, it will be used to check if the file is already loaded
+# If diagrams_dict is None, it will just return the filename without checking from the directory
+def prompt_user_file_name(diagrams_dict=None) -> str:
     old_completer = readline.get_completer()
 
-    # Set the XML file completer temporarily
-    readline.set_completer(complete_xml)
+    # Use the factory to pass diagrams_dict
+    readline.set_completer(complete_xml_factory(diagrams_dict))
     readline.parse_and_bind("tab: complete")
 
     try:
