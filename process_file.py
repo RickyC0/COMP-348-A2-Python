@@ -146,6 +146,7 @@ def process_user_choice(choice,diagrams_dict=None):
         choice_five(diagrams_dict=diagrams_dict)
 
     elif choice == 6:
+        print("\nYou chose: Statistics")
         choice_six(diagrams_dict=diagrams_dict)
         
     elif choice == 7:
@@ -158,8 +159,14 @@ def process_user_choice(choice,diagrams_dict=None):
 def choice_one():
     xml_files=return_current_files()
 
-    if len(xml_files)==0:
-        print("No XML files found in the current directory.")
+    try:
+        if len(xml_files) == 0:
+            raise FolderException("No XML files found in the current directory.")
+        
+    except FolderException as e:
+        print(e)
+        return
+    
     else:
         for xml_file in xml_files:
             print(xml_file)
@@ -198,10 +205,15 @@ def choice_three(diagrams_dict):
                     raise FileException("File not found.")
 
             else:
-                print("The file you entered does not exist in the current directory.")
+                raise FileException(f"File '{file_name}' not found in the current directory.")
+            
+            exception=FileException("File not found in the current directory.")
+            print(exception)
 
     else:
-        print("No XML files found in the current directory.")
+        exception=FolderException("No XML files found in the current directory.")
+        print(exception)
+        
 
 def choice_four(diagrams_dict=None):
     
@@ -209,10 +221,13 @@ def choice_four(diagrams_dict=None):
     if diagrams_dict is None:
         diagrams_dict = {}
 
-    if len(diagrams_dict) == 0:
-        print("No diagrams loaded.")
-        return
+    try:
+        if len(diagrams_dict) == 0:
+            raise DiagramException("No diagrams loaded.")
     
+    except DiagramException as e:
+        print(e)
+        return
 
     choice_two(diagrams_dict=diagrams_dict)
     file_name=prompt_user_file_name(diagrams_dict=diagrams_dict)
@@ -244,7 +259,7 @@ def choice_five(diagrams_dict=None):
     
 
 def choice_six(diagrams_dict=None):
-    print("\nYou chose: Statistics")
+    
     pass
 
 def choice_seven():
@@ -252,7 +267,7 @@ def choice_seven():
         exit()   
 
 
-def load_file(filename, diagrams_dict):
+def load_file(filename, diagrams_dict=None):
     try:
         with open(filename, 'r') as file:
             xml_data = file.read()
@@ -315,9 +330,12 @@ def load_file(filename, diagrams_dict):
         diagrams_dict[filename] = diagram
         print("File loaded successfully!")
 
-    except FileNotFoundError:
-        print(f"Error: File '{filename}' not found.")
-        FileException()
+    except FileNotFoundError as e:
+        print(f"Error: The file '{filename}' was not found.\nDetails: {e}")
+    except ET.ParseError as parse_error:
+        print(f"Error: The file '{filename}' contains invalid XML.\nDetails: {parse_error}")
+    except Exception as e:
+        print(f"An unexpected error occurred while loading the file '{filename}'.\nDetails: {e}")
 
 def is_file_loaded(filename, diagrams_dict):
     """Check if a file is already loaded in memory."""
