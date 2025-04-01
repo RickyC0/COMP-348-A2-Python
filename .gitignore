@@ -126,3 +126,6 @@ dmypy.json
 COMP 348 A2
 
 *.pdf
+
+/xml_folder/*
+/diagram

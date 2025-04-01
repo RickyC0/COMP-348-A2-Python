@@ -33,7 +33,7 @@ def search_sub_menu_five():
     print("5.2. Find by dimension")
     print("0. Return to Main Menu")  # Option to go back
 
-def get_valid_user_int(prompt):
+def get_valid_user_int(prompt,default=None) -> int:
     while True:
         user_input = input(prompt).strip()
         try:
@@ -42,6 +42,12 @@ def get_valid_user_int(prompt):
         except ValueError:
             # If conversion fails, raise our custom exception
             try:
+                if user_input == "":
+                    if default is not None:
+                        return default
+                    else:
+                        raise InvalidUserInputError("Invalid input. Please enter a valid number.")
+
                 raise InvalidUserInputError("Invalid input. Please enter a valid number.")
             except InvalidUserInputError as e:
                 print(e)
@@ -80,17 +86,15 @@ def prompt_user_file_name(diagrams_dict=None) -> str:
 
     return user_input
 
-def prompt_user_exit():
-    while(True):
-        user_input = input("Are you sure you want to exit? (y/n): ").strip().lower()
-        if user_input == 'y':
-            return True
-        
-        elif user_input == 'n':
-            return False
-        
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")
+def prompt_user_bool_option(prompt):
+    user_input = input(prompt).strip().lower()
+    if user_input in ["yes", "y"]:
+        return True
+    elif user_input in ["no", "n"]:
+        return False
+    else:
+        # Any other input (including blank) is treated as "all"
+        return None
 
 def prompt_user_object_type():
     while True:
@@ -100,23 +104,32 @@ def prompt_user_object_type():
         else:
             print("Invalid input. Please enter a valid object type.")
 
-def return_current_files()-> list[str]:
-    all_files=os.listdir()
-    xml_files=[]
+def display_diagrams(data, prompt="Diagrams"):
+    """Display diagram information from a list or dictionary with a formatted prompt."""
+    print("\n" + "=" * 60)
+    print(f"{prompt}".center(60))
+    print("=" * 60)
 
-    for each_file in all_files:
-        if each_file.endswith(".xml"):
-            xml_files.append(each_file)
-
-    return xml_files
-
-def list_diagrams(diagrams_dict):
-    if len(diagrams_dict) == 0:
-        print("No diagrams loaded.")
+    if not data:
+        print("\n[!] No items found.\n")
     else:
-        for filename, diagram in diagrams_dict.items():
-            print(f"Filename: {filename}")
-            print("-" * 20)  # Separator between diagrams
+        print()
+        if isinstance(data, dict):
+            for i, (filename, diagram) in enumerate(data.items(), start=1):
+                print(f"  {i:>2}. Filename: {filename}")
+                print(f"      Name    : {getattr(diagram, 'filename', 'N/A')}")
+                print(f"      Objects : {len(getattr(diagram, 'objects', []))}")
+                print("-" * 60)
+        elif isinstance(data, list):
+            for i, diagram in enumerate(data, start=1):
+                print(f"  {i:>2}. {diagram.filename}")
+            print()
+        else:
+            print("[!] Unsupported data type.")
+
+    print("=" * 60 + "\n")
+
+
 
 def display_diagram_info(diagrams_dict, file_name):
     """Display formatted information about a specific diagram."""

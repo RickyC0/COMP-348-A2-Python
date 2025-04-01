@@ -37,7 +37,7 @@ class DiagramObjectException(Exception):
 class Diagram:
     objects=[]
 
-    def __init__(self, path: str, folder: str, filename: str, source: str, size: tuple, segmented: bool, objects: list = None):
+    def __init__(self, path: str , folder: str, filename: str, source: str, size: tuple, segmented: bool, objects: list = None):
         """
         Represents an XML file diagram.
         
@@ -90,7 +90,7 @@ class DiagramObject:
     BNDBOX=(0, 0, 0, 0) # Placeholder for bounding box coordinates (xmin, ymin, xmax, ymax)
 
 
-    def __init__(self, name: str, pose: str, truncated: bool, difficult: bool, bndbox: tuple):
+    def __init__(self, name: str = None, pose: str = None, truncated: bool = None, difficult: bool = None, bndbox: tuple = None):
         """
         Represents an object within a diagram.
         
@@ -109,7 +109,7 @@ class DiagramObject:
 
     def __str__(self) -> str:
         return (
-            f"Name: {self.name}\n"
+            f"\nName: {self.name}\n"
             f"Pose: {self.pose}\n"
             f"Truncated: {self.truncated}\n"
             f"Difficult: {self.difficult}\n"
@@ -174,11 +174,8 @@ def choice_one():
 
 def choice_two(diagrams_dict):
 
-    list_diagrams(diagrams_dict=diagrams_dict)
-
-
-    
-
+    display_diagrams(data=diagrams_dict,prompt="Diagrams loaded in memory")
+  
 def choice_three(diagrams_dict):
     
     xml_files=return_current_files()
@@ -215,15 +212,9 @@ def choice_three(diagrams_dict):
         exception=FolderException("No XML files found in the current directory.")
         print(exception)
         
-
 def choice_four(diagrams_dict=None):
-    
-
-    if diagrams_dict is None:
-        diagrams_dict = {}
-
     try:
-        if len(diagrams_dict) == 0:
+        if diagrams_dict is None:
             raise DiagramException("No diagrams loaded.")
     
     except DiagramException as e:
@@ -252,7 +243,8 @@ def choice_five(diagrams_dict=None):
 
         elif sub_choice == "2":
             print("\nYou chose: 5.2. Find by dimension")
-            # TODO
+            choice_five_two(diagrams_dict=diagrams_dict)
+
         elif sub_choice == "0":
             print("Returning to main menu...")
             break
@@ -269,12 +261,53 @@ def choice_five_one(diagrams_dict=None):
         for diagram in found_diagrams:
             print(diagram.filename)
 
+def choice_five_two(diagrams_dict=None):
+    try:
+        if diagrams_dict is None:
+            raise DiagramException("No diagrams loaded.")
+    
+    except DiagramException as e:
+        print(e)
+        return
+    
+    user_object_specs=prompt_dimensions_submenu()
+
+    if user_object_specs is not None:
+        min_height, min_width, max_height, max_width = user_object_specs.bndbox
+        truncated = user_object_specs.truncated
+        difficult = user_object_specs.difficult
+
+        found_diagrams = []
+
+        for diagram in diagrams_dict.values():
+            for obj in diagram.objects:
+               
+                xmin, ymin, xmax, ymax = obj.bndbox
+                width = xmax - xmin
+                height = ymax - ymin
+
+                if (min_width <= width <= max_width and
+                    min_height <= height <= max_height and
+                    (truncated is None or obj.truncated == truncated) and
+                    (difficult is None or obj.difficult == difficult)):
+                    
+                    found_diagrams.append(diagram)
+                    break
+
+        display_diagrams(found_diagrams, "Diagrams whose objects match these specifications:")
+
+    else:
+        print("Invalid input. Please try again.")
+
+    
+
+
 def choice_six(diagrams_dict=None):
     
     pass
 
 def choice_seven():
-    if prompt_user_exit():
+    if prompt_user_bool_option("Are you sure you want to exit? (y/n): "):
         exit()   
 
 
@@ -355,17 +388,15 @@ def is_file_loaded(filename, diagrams_dict=None):
 # Function that searches the loaded diagrams for a specific object type.
 # NB: I assumed that the object type is the name of the object in the XML file.
 def search_by_object_type(diagrams_dict=None)-> list[Diagram]:
-    object_type = prompt_user_object_type()
-
-    if diagrams_dict is None:
-        diagrams_dict = {}
-
     try:
-        if len(diagrams_dict) == 0:
+        if diagrams_dict is None:
             raise DiagramException("No diagrams loaded.")
+    
     except DiagramException as e:
         print(e)
-        return  
+        return
+    
+    object_type = prompt_user_object_type() 
     
     found_objects = []
 
@@ -377,9 +408,34 @@ def search_by_object_type(diagrams_dict=None)-> list[Diagram]:
 
     return found_objects
 
-def search_by_object_dimension():
-    return None
+#Did not implement this function in ui.py to avoid circular import
+def prompt_dimensions_submenu() -> DiagramObject:
+    """Prompt the user for dimensions and return a Diagram object."""
+    print("\n===== DIMENSIONS SUB-MENU =====")
 
+    min_width = get_valid_user_int("Min width (enter blank for zero): ", 0)
+    max_width = get_valid_user_int("Max width (enter blank for max): ", float('inf'))
+    min_height = get_valid_user_int("Min height (enter blank for zero): ", 0)
+    max_height = get_valid_user_int("Max height (enter blank for max): ", float('inf'))
+
+    bndbox=(min_width, min_height, max_width, max_height)
+
+    difficult_filter = prompt_user_bool_option("Difficult (yes/no/All): ")
+    truncated_filter = prompt_user_bool_option("Truncated (yes/no/All): ")
+
+    try:
+        diagram_object = DiagramObject(bndbox=bndbox, difficult=difficult_filter, truncated=truncated_filter)
+
+        if diagram_object is None:
+            raise DiagramObjectException("The provided dimensions are invalid.")
+    
+    except DiagramObjectException as e:
+            print(f"[!] Error: {e}")
+            return None
+
+    return diagram_object
+
+#TODO
 def show_statistics():
     return None
 
