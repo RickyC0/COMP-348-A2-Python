@@ -132,6 +132,11 @@ def display_diagrams(data, prompt="Diagrams", error_message="No diagrams found")
 
     print("=" * 60 + "\n")
 
+"""
+This function displays the information of a specific diagram that is loaded in memory.
+It takes a dictionary of diagrams and the filename as input.
+It checks if the diagram is loaded, and if so, it prints its details in a formatted manner.
+"""
 def display_diagram_info(diagrams_dict, file_name):
     """Display formatted information about a specific diagram."""
     diagram = diagrams_dict.get(file_name)
@@ -175,6 +180,82 @@ def print_error(section_title="Diagrams", error_message="No diagrams loaded in m
     print(separator+"\n")
     print(error_msg.center(width) + "\n")
     print(separator + "\n")
+
+def display_statistics(diagrams_dict):
+    """Display formatted statistics information by analyzing every diagram."""
+    total_width = 60
+    separator = "=" * total_width
+
+    nb_loaded_diagrams = 0
+    nb_loaded_objects = 0
+    diagram_types = set()
+    
+    min_height = None
+    max_height = None
+    min_width = None
+    max_width = None
+    objects_xmin = None
+    objects_xmax = None
+    objects_ymin = None
+    objects_ymax = None
+
+    for diagram in diagrams_dict.values():
+        nb_loaded_diagrams += 1
+        nb_loaded_objects += diagram.nb_objects  
+        diagram_types=diagram_types.union(diagram.obj_types)        
+
+        
+        h = diagram.size[1]
+        w = diagram.size[0]
+        if min_height is None or h < min_height:
+            min_height = h
+        if max_height is None or h > max_height:
+            max_height = h
+        if min_width is None or w < min_width:
+            min_width = w
+        if max_width is None or w > max_width:
+            max_width = w
+
+        
+        x_min = diagram.xmin
+        x_max = diagram.xmax
+        y_min = diagram.ymin
+        y_max = diagram.ymax
+        if objects_xmin is None or x_min < objects_xmin:
+            objects_xmin = x_min
+        if objects_xmax is None or x_max > objects_xmax:
+            objects_xmax = x_max
+        if objects_ymin is None or y_min < objects_ymin:
+            objects_ymin = y_min
+        if objects_ymax is None or y_max > objects_ymax:
+            objects_ymax = y_max
+
+    avg_objects = nb_loaded_objects / nb_loaded_diagrams if nb_loaded_diagrams else 0
+    diagram_types_str = ", ".join(sorted(diagram_types)) if diagram_types else "None"
+
+    # Print the formatted statistics report
+    print("\n" + separator)
+    print("Statistics".center(total_width))
+    print(separator + "\n")
+
+    print(f"{'Total Diagrams Loaded':<30}: {nb_loaded_diagrams}")
+    print(f"{'Total Objects Loaded':<30}: {nb_loaded_objects}")
+    print(f"{'Avg Objects per Diagram':<30}: {avg_objects:.2f}")
+    print(f"{'Diagram Types':<30}: {diagram_types_str}\n")
+
+    print("Diagram Size (Width x Height):")
+    print(f"    {'Min Width':<20}: {min_width}")
+    print(f"    {'Max Width':<20}: {max_width}")
+    print(f"    {'Min Height':<20}: {min_height}")
+    print(f"    {'Max Height':<20}: {max_height}\n")
+
+    print("Object Coordinates:")
+    print(f"    {'Xmin':<20}: {objects_xmin}")
+    print(f"    {'Xmax':<20}: {objects_xmax}")
+    print(f"    {'Ymin':<20}: {objects_ymin}")
+    print(f"    {'Ymax':<20}: {objects_ymax}")
+
+    print("\n" + separator + "\n")
 
 
 if __name__ == "__main__":

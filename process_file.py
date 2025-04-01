@@ -38,7 +38,7 @@ class DiagramObjectException(Exception):
 class Diagram:
     objects=[]
 
-    def __init__(self, path: str , folder: str, filename: str, source: str, size: tuple, segmented: bool, objects: list = None):
+    def __init__(self, path: str , folder: str, filename: str, source: str, size: tuple, segmented: bool, objects: list = None, nb_objects: int = 0, obj_types: set = None, xmin: int = 0, ymin: int = 0, xmax: int = 0, ymax: int = 0):
         """
         Represents an XML file diagram.
         
@@ -57,6 +57,13 @@ class Diagram:
         self.size = size
         self.segmented = segmented
         self.objects = objects if objects is not None else []
+        self.nb_objects = nb_objects
+        self.obj_types = obj_types if obj_types is not None else set()
+        self.xmin = xmin
+        self.ymin = ymin
+        self.xmax = xmax
+        self.ymax = ymax
+        
 
     def __str__(self) -> str:
         # Create a multi-line string representation of the diagram
@@ -69,6 +76,8 @@ class Diagram:
             f"Size: {self.size}\n"
             f"Segmented: {self.segmented}\n"
             f"Objects:\n{objects_str}\n"
+            f"Total Objects: {len(self.objects)}\n"
+            f"Object Types: {', '.join(set(obj.name for obj in self.objects)) if self.objects else 'None'}\n"
         )
 
     def __repr__(self) -> str:
@@ -228,8 +237,7 @@ def choice_four(diagrams_dict=None):
         display_diagram_info(diagrams_dict=diagrams_dict, file_name=file_name)
 
     except FileNotFoundError as e:
-        print(e)
-         
+        print(e)         
 
 def choice_five(diagrams_dict=None):
     # Enter the sub-menu for Search
@@ -293,8 +301,9 @@ def choice_five_two(diagrams_dict=None):
         print("Invalid input. Please try again.")
 
 def choice_six(diagrams_dict=None):
-    
-    pass
+    if(not validate_diagram_dict(diagrams_dict=diagrams_dict,section_title="Statistics", error_message="No diagrams loaded in memory.")):
+        return
+    display_statistics(diagrams_dict=diagrams_dict)
 
 def choice_seven():
     if prompt_user_bool_option("Are you sure you want to exit? (y/n): "):
@@ -328,9 +337,16 @@ def load_file(filename, diagrams_dict=None):
 
         
         objects = []
+        obj_types=set()
+
+        temp_xmin=int(1e6)
+        temp_ymin=int(1e6)
+        temp_xmax=0
+        temp_ymax=0
 
         for obj_elem in root.findall('object'):
             name = obj_elem.findtext('name', default='')
+            obj_types.add(name)
             pose = obj_elem.findtext('pose', default='Unspecified')
             truncated = int(obj_elem.findtext('truncated', default='0'))
             difficult = int(obj_elem.findtext('difficult', default='0'))
@@ -345,7 +361,15 @@ def load_file(filename, diagrams_dict=None):
             else:
                 bbox = [0, 0, 0, 0]
 
-            
+            if xmin<temp_xmin:
+                temp_xmin=xmin
+            if ymin<temp_ymin:
+                temp_ymin=ymin
+            if xmax>temp_xmax:
+                temp_xmax=xmax
+            if ymax>temp_ymax:
+                temp_ymax=ymax
+
             obj = DiagramObject(name, pose, truncated, difficult, bbox)
             objects.append(obj)
 
@@ -357,9 +381,14 @@ def load_file(filename, diagrams_dict=None):
             source=source,
             size=size,
             segmented=segmented,
-            objects=objects
+            objects=objects,
+            nb_objects=len(objects),
+            obj_types=obj_types,
+            xmin=temp_xmin,
+            ymin=temp_ymin,
+            xmax=temp_xmax,
+            ymax=temp_ymax
         )
-
         
         diagrams_dict[filename] = diagram
         print("File loaded successfully!")
