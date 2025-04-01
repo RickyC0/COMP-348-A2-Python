@@ -4,6 +4,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+
 class FolderException(Exception):
     def __init__(self, message="You have not specified a folder that could contain XML files to check."):
         self.message = message
@@ -126,6 +127,7 @@ class DiagramObject:
 def process_user_choice(choice,diagrams_dict=None):
     if diagrams_dict is None:
         diagrams_dict = {}
+
     if choice == 1:
         print("\nYou chose: List Current Files")
         choice_one()
@@ -160,27 +162,30 @@ def choice_one():
     xml_files=return_current_files()
 
     try:
-        if len(xml_files) == 0:
+        if not xml_files:
             raise FolderException("No XML files found in the current directory.")
         
     except FolderException as e:
-        print(e)
+        print_error(section_title="List Current Files", error_message=e.message)
         return
     
     else:
-        for xml_file in xml_files:
-            print(xml_file)
-        print()
+        print("\n===== CURRENT FILES =====")
+        print("The following XML files are found in the current directory:\n")
+        for each_file in xml_files:
+            print(f"File: {each_file}")
 
 def choice_two(diagrams_dict):
-
+    if not validate_diagram_dict(diagrams_dict=diagrams_dict,section_title="Display Diagrams", error_message="No diagrams loaded in memory."):
+        return
+    
     display_diagrams(data=diagrams_dict,prompt="Diagrams loaded in memory", error_message="No diagrams loaded in memory.")
   
 def choice_three(diagrams_dict):
     
     xml_files=return_current_files()
 
-    if(len(xml_files)!=0):
+    if len(xml_files)>0:
         choice_one()
 
         file_name=prompt_user_file_name()
@@ -190,7 +195,7 @@ def choice_three(diagrams_dict):
                 raise FileAlreadyExists(file_name)
             
         except FileAlreadyExists as e:
-            print(e)
+            print_error(section_title="Load File", error_message=e.message)
         
         else:
             try:
@@ -206,19 +211,14 @@ def choice_three(diagrams_dict):
                     raise FileException(f"File '{file_name}' not found in the current directory.")
             
             except FileException as e:
-                print(e)
+                print_error(section_title="Load File", error_message=e.message)
 
     else:
         exception=FolderException("No XML files found in the current directory.")
-        print(exception)
+        print_error(section_title="Load File", error_message=exception.message)
         
 def choice_four(diagrams_dict=None):
-    try:
-        if diagrams_dict is None:
-            raise DiagramException("No diagrams loaded.")
-    
-    except DiagramException as e:
-        print(e)
+    if( not validate_diagram_dict(diagrams_dict=diagrams_dict,section_title="Display Diagram Info", error_message="No diagrams loaded in memory.")):    
         return
 
     choice_two(diagrams_dict=diagrams_dict)
@@ -252,17 +252,15 @@ def choice_five(diagrams_dict=None):
             print("Invalid search option. Please try again.")
     
 def choice_five_one(diagrams_dict=None):
+    if( not validate_diagram_dict(diagrams_dict=diagrams_dict,section_title="Search by object type", error_message="No diagrams loaded in memory.")):
+        return
+    
     found_diagrams = search_by_object_type(diagrams_dict=diagrams_dict)
 
     display_diagrams(data=found_diagrams, prompt="Diagrams containing the specified object type:", error_message="No diagrams found with the specified object type.")
 
 def choice_five_two(diagrams_dict=None):
-    try:
-        if diagrams_dict is None:
-            raise DiagramException("No diagrams loaded.")
-    
-    except DiagramException as e:
-        print(e)
+    if(not validate_diagram_dict(diagrams_dict=diagrams_dict,section_title="Search by dimensions", error_message="No diagrams loaded in memory.")):
         return
     
     user_object_specs=prompt_dimensions_submenu()
@@ -380,14 +378,7 @@ def is_file_loaded(filename, diagrams_dict=None):
 # Function that searches the loaded diagrams for a specific object type.
 # NB: I assumed that the object type is the name of the object in the XML file.
 def search_by_object_type(diagrams_dict=None)-> list[Diagram]:
-    try:
-        if diagrams_dict is None:
-            raise DiagramException("No diagrams loaded.")
-    
-    except DiagramException as e:
-        print(e)
-        return
-    
+ 
     object_type = prompt_user_object_type() 
     
     found_objects = []
@@ -439,6 +430,17 @@ def validate_argv(path):
         return False
     
     elif not os.path.isdir(path):
+        return False
+    
+    else:
+        return True
+
+def validate_diagram_dict(diagrams_dict,section_title, error_message):
+    if not isinstance(diagrams_dict, dict):
+        return False
+    
+    elif not diagrams_dict:
+        print_error(section_title=section_title, error_message=error_message)
         return False
     
     else:

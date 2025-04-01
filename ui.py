@@ -164,6 +164,19 @@ def display_diagram_info(diagrams_dict, file_name):
 
     print("\n" + "=" * 50 + "\n")
 
+def print_error(section_title="Diagrams", error_message="No diagrams loaded in memory"):
+    width = 60
+    separator = "=" * width
+    title = section_title
+    error_msg = error_message
+    
+    print("\n" + separator)
+    print(title.center(width))
+    print(separator+"\n")
+    print(error_msg.center(width) + "\n")
+    print(separator + "\n")
+
+
 if __name__ == "__main__":
     # Prompt the user for a choice and display it
     user_choice = prompt_user_menu()
