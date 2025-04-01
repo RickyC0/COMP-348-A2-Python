@@ -174,7 +174,7 @@ def choice_one():
 
 def choice_two(diagrams_dict):
 
-    display_diagrams(data=diagrams_dict,prompt="Diagrams loaded in memory")
+    display_diagrams(data=diagrams_dict,prompt="Diagrams loaded in memory", error_message="No diagrams loaded in memory.")
   
 def choice_three(diagrams_dict):
     
@@ -254,12 +254,7 @@ def choice_five(diagrams_dict=None):
 def choice_five_one(diagrams_dict=None):
     found_diagrams = search_by_object_type(diagrams_dict=diagrams_dict)
 
-    if len(found_diagrams) == 0:
-        print("No objects found with the specified type.")
-    else:
-        print("Found objects:")
-        for diagram in found_diagrams:
-            print(diagram.filename)
+    display_diagrams(data=found_diagrams, prompt="Diagrams containing the specified object type:", error_message="No diagrams found with the specified object type.")
 
 def choice_five_two(diagrams_dict=None):
     try:
@@ -294,13 +289,10 @@ def choice_five_two(diagrams_dict=None):
                     found_diagrams.append(diagram)
                     break
 
-        display_diagrams(found_diagrams, "Diagrams whose objects match these specifications:")
+        display_diagrams(data=found_diagrams, prompt="Diagrams whose objects match these specifications:", error_message="No diagrams found with the specified dimensions.")
 
     else:
         print("Invalid input. Please try again.")
-
-    
-
 
 def choice_six(diagrams_dict=None):
     
@@ -452,6 +444,15 @@ def validate_argv(path):
     else:
         return True
 
+def return_current_files()-> list[str]:
+    all_files=os.listdir()
+    xml_files=[]
+
+    for each_file in all_files:
+        if each_file.endswith(".xml"):
+            xml_files.append(each_file)
+
+    return xml_files
 
 def exit():
     print("\nThe system will exit. Goodbye!")

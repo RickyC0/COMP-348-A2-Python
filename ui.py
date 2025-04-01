@@ -104,14 +104,17 @@ def prompt_user_object_type():
         else:
             print("Invalid input. Please enter a valid object type.")
 
-def display_diagrams(data, prompt="Diagrams"):
+def display_diagrams(data, prompt="Diagrams", error_message="No diagrams found"):
     """Display diagram information from a list or dictionary with a formatted prompt."""
     print("\n" + "=" * 60)
     print(f"{prompt}".center(60))
     print("=" * 60)
 
     if not data:
-        print("\n[!] No items found.\n")
+        print("\n" + f"[!] {error_message}".center(60)+"\n")
+        print("=" * 60 + "\n")
+        return
+    
     else:
         print()
         if isinstance(data, dict):
@@ -128,8 +131,6 @@ def display_diagrams(data, prompt="Diagrams"):
             print("[!] Unsupported data type.")
 
     print("=" * 60 + "\n")
-
-
 
 def display_diagram_info(diagrams_dict, file_name):
     """Display formatted information about a specific diagram."""
